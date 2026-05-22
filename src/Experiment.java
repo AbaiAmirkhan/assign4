@@ -1,8 +1,9 @@
+import java.util.Random;
+
 public class Experiment {
 
-    // Run BFS and DFS with execution time measurement
     public void runTraversals(Graph g) {
-
+        // Run existing traversals
         long startBFS = System.nanoTime();
         g.bfs(0);
         long endBFS = System.nanoTime();
@@ -11,16 +12,19 @@ public class Experiment {
         g.dfs(0);
         long endDFS = System.nanoTime();
 
-        long bfsTime = endBFS - startBFS;
-        long dfsTime = endDFS - startDFS;
+        System.out.println("BFS Execution Time: " + (endBFS - startBFS) + " ns");
+        System.out.println("DFS Execution Time: " + (endDFS - startDFS) + " ns");
 
-        System.out.println("BFS Execution Time: " + bfsTime + " ns");
-        System.out.println("DFS Execution Time: " + dfsTime + " ns");
+        long startDijkstra = System.nanoTime();
+        g.dijkstra(0); // Computes shortest distance from start vertex 0 to all others
+        long endDijkstra = System.nanoTime();
+
+        System.out.println("Dijkstra Execution Time: " + (endDijkstra - startDijkstra) + " ns");
     }
 
-    // Create and test graphs of different sizes
     public void runMultipleTests() {
         int[] sizes = {10, 30, 100};
+        Random rand = new Random(42); // Seeded random for consistent edge weights
 
         for (int size : sizes) {
             System.out.println("\n============================");
@@ -29,22 +33,22 @@ public class Experiment {
 
             Graph graph = new Graph();
 
-            // Add vertices
             for (int i = 0; i < size; i++) {
                 graph.addVertex(new Vertex(i));
             }
 
-            // Add edges
+            // Create weighted connections
             for (int i = 0; i < size - 1; i++) {
-                graph.addEdge(i, i + 1);
+                // Generates an edge weight between 1 and 10
+                int weight1 = rand.nextInt(10) + 1;
+                graph.addEdge(i, i + 1, weight1);
 
-                // Additional edges for more connectivity
                 if (i + 2 < size) {
-                    graph.addEdge(i, i + 2);
+                    int weight2 = rand.nextInt(10) + 1;
+                    graph.addEdge(i, i + 2, weight2);
                 }
             }
 
-            // Print graph only for small graph
             if (size == 10) {
                 graph.printGraph();
             }
@@ -54,6 +58,6 @@ public class Experiment {
     }
 
     public void printResults() {
-        System.out.println("\nTraversal experiments completed successfully.");
+        System.out.println("\nTraversal and Dijkstra experiments completed successfully.");
     }
 }

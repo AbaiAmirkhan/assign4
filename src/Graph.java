@@ -1,47 +1,86 @@
 import java.util.*;
 
 public class Graph {
-
-    private Map<Integer, List<Integer>> adjacencyList;
+    private Map<Integer, List<Edge>> adjacencyList;
 
     public Graph() {
         adjacencyList = new HashMap<>();
     }
 
-    // Add a new vertex
     public void addVertex(Vertex v) {
         adjacencyList.putIfAbsent(v.getId(), new ArrayList<>());
     }
 
-    // Add an edge between vertices
-    public void addEdge(int from, int to) {
+    public void addEdge(int from, int to, int weight) {
+        Vertex source = new Vertex(from);
+        Vertex destination = new Vertex(to);
 
-        adjacencyList.get(from).add(to);
-
-        // Uncomment for undirected graph
-        adjacencyList.get(to).add(from);
+        adjacencyList.get(from).add(new Edge(source, destination, weight));
+        adjacencyList.get(to).add(new Edge(destination, source, weight)); // Undirected
     }
 
-    // Print graph structure
     public void printGraph() {
-
-        System.out.println("Adjacency List:");
-
+        System.out.println("Adjacency List (with weights):");
         for (int vertex : adjacencyList.keySet()) {
-
             System.out.print(vertex + " -> ");
-
-            for (int neighbor : adjacencyList.get(vertex)) {
-                System.out.print(neighbor + " ");
+            for (Edge edge : adjacencyList.get(vertex)) {
+                System.out.print(edge.getDestination().getId() + "(w:" + edge.getWeight() + ") ");
             }
-
             System.out.println();
         }
     }
 
-    // Breadth-First Search
-    public void bfs(int start) {
+    public void dijkstra(int start) {
+        int numVertices = adjacencyList.size();
 
+        int[] distances = new int[numVertices];
+        boolean[] visited = new boolean[numVertices];
+
+        Arrays.fill(distances, Integer.MAX_VALUE);
+        distances[start] = 0;
+
+        for (int i = 0; i < numVertices - 1; i++) {
+            int u = findMinDistanceVertex(distances, visited, numVertices);
+
+            if (u == -1) break;
+            visited[u] = true;
+
+            for (Edge edge : adjacencyList.get(u)) {
+                int v = edge.getDestination().getId();
+                int weight = edge.getWeight();
+
+                if (!visited[v] && distances[u] != Integer.MAX_VALUE && distances[u] + weight < distances[v]) {
+                    distances[v] = distances[u] + weight;
+                }
+            }
+        }
+
+        printDijkstraResults(start, distances);
+    }
+
+    private int findMinDistanceVertex(int[] distances, boolean[] visited, int numVertices) {
+        int min = Integer.MAX_VALUE;
+        int minIndex = -1;
+
+        for (int v = 0; v < numVertices; v++) {
+            if (!visited[v] && distances[v] <= min) {
+                min = distances[v];
+                minIndex = v;
+            }
+        }
+        return minIndex;
+    }
+
+    private void printDijkstraResults(int start, int[] distances) {
+        System.out.println("\nDijkstra Shortest Paths from Vertex " + start + ":");
+        System.out.println("Vertex\tDistance from Source");
+        for (int i = 0; i < distances.length; i++) {
+            String distStr = (distances[i] == Integer.MAX_VALUE) ? "Unreachable" : String.valueOf(distances[i]);
+            System.out.println(i + "\t\t" + distStr);
+        }
+    }
+
+    public void bfs(int start) {
         Set<Integer> visited = new HashSet<>();
         Queue<Integer> queue = new LinkedList<>();
 
@@ -49,42 +88,34 @@ public class Graph {
         queue.offer(start);
 
         System.out.print("BFS Traversal: ");
-
         while (!queue.isEmpty()) {
-
             int current = queue.poll();
             System.out.print(current + " ");
 
-            for (int neighbor : adjacencyList.get(current)) {
-
+            for (Edge edge : adjacencyList.get(current)) {
+                int neighbor = edge.getDestination().getId();
                 if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
                     queue.offer(neighbor);
                 }
             }
         }
-
         System.out.println();
     }
 
-    // Depth-First Search
     public void dfs(int start) {
-
         Set<Integer> visited = new HashSet<>();
-
         System.out.print("DFS Traversal: ");
         dfsHelper(start, visited);
-
         System.out.println();
     }
 
     private void dfsHelper(int current, Set<Integer> visited) {
-
         visited.add(current);
         System.out.print(current + " ");
 
-        for (int neighbor : adjacencyList.get(current)) {
-
+        for (Edge edge : adjacencyList.get(current)) {
+            int neighbor = edge.getDestination().getId();
             if (!visited.contains(neighbor)) {
                 dfsHelper(neighbor, visited);
             }
